@@ -1,10 +1,10 @@
 import React from 'react'
 import { Send } from 'lucide-react'
-import MessageBubble from './MessageBubble'
+
 import Header from './Header'
 import Messages from './Messages'
 import InputArea from './InputArea'
-import { useChats } = "./../Conversation"
+import { useChats } from "./../ConversationContext"
 
 const ChatArea = () => {
 

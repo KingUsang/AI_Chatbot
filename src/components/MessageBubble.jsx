@@ -6,8 +6,10 @@ import ReactMarkdown from 'react-markdown'
 const MessageBubble = ({ message }) => {
   const { content, role, timestamp } = message
   const isBot = message.role === "assistant"
+  
   return (
-    <div className={`flex items-start space-x-3 ${isBot ? '' : 'flex-row-reverse space-x-reverse'}`}>
+    <div className={`flex items-start  ${isBot ? '' : 'flex-row-reverse'}`}>
+      <div className={`flex items-start max-w-[85%] gap-2 ${isBot ? '' : 'flex-row-reverse'}`}>
       {/* Avatar */}
       <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
         isBot ? 'bg-purple-accent' : 'bg-blue-accent'
@@ -22,26 +24,26 @@ const MessageBubble = ({ message }) => {
             ? 'bg-dark-card rounded-tl-sm' 
             : 'bg-blue-accent rounded-tr-sm'
         }`}>
-          <p className="text-sm leading-relaxed">
-            <ReactMarkdown
-              components={{
-                h1: ({ node, ...props }) => <h2 {...props} />,
-                h2: ({ node, ...props }) => <h3 {...props} />,
-                h3: ({ node, ...props }) => <h4 {...props} />,
-                h4: ({ node, ...props }) => <h5 {...props} />,
-                h5: ({ node, ...props }) => <h6 {...props} />,
-              }}
-            >
-              {content}
+          <div className="reactMarkDown">
+            <ReactMarkdown children={content}>
+              
             </ReactMarkdown>
-          </p>
+          </div>
         </div>
         <span className="text-xs text-gray-500 mt-1">
           {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
+      </div>
       </div>
     </div>
   )
 }
 
 export default MessageBubble
+{/* components={{
+                h1: ({ node, ...props }) => <h2 {...props} />,
+                h2: ({ node, ...props }) => <h3 {...props} />,
+                h3: ({ node, ...props }) => <h4 {...props} />,
+                h4: ({ node, ...props }) => <h5 {...props} />,
+                h5: ({ node, ...props }) => <h6 {...props} />,
+              }} */}

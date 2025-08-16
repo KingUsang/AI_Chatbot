@@ -1,6 +1,8 @@
-import { useDispatchChat } = "@/Conversation.js"
+import { useChatsDispatch } from "@/ConversationContext"
 
-const Header () => {
+const Header = () => {
+  const dispatch = useChatsDispatch()
+  
   const handleNewChat = () => {
     const id = Math.random()
     dispatch({
@@ -15,7 +17,7 @@ const Header () => {
   
   return (
     <div className="p-6 border-b border-gray-700">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pl-8">
         <div>
           <h1 className="text-2xl font-semibold">AI Assistant</h1>
           <p className="text-gray-400 text-sm">How can I help you today?</p>

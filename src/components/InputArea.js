@@ -1,35 +1,51 @@
 import { useState } from "react"
-import { useChatsDispatch } = "./../Conversation.js"
+import { useChats, useChatsDispatch } from "@/ConversationContext"
 import { Send, LoaderCircle } from 'lucide-react'
 import { toast } from 'react-toastify'
 
+function generateTitleFromMessage(message, maxLength = 50) {
+  if (!message) return "New Chat"
+  const trimmed = message.trim()
+  // If there's a sentence end early on, use that
+  const firstSentence = trimmed.split(/[.!?]/)[0]
+  if (firstSentence.length <= maxLength) {
+    return firstSentence
+  }
+  return firstSentence.slice(0, maxLength).trim() + "..."
+}
 
-async function queryAssistant(data) {
+
+// refactor my code to use reducer at App.jsx and pass state props and handlers to children
+async function queryAssistant(messages) {
 	const response = await fetch(
-		"https://router.huggingface.co/v1/chat/completions",
+		"https://openrouter.ai/api/v1/chat/completions",
 		{
 			headers: {
-				Authorization: `Bearer ${process.env.HF_TOKEN}`,
+				Authorization: `Bearer ${process.env.NEXT_PUBLIC_AI_TOKEN}`,
 				"Content-Type": "application/json",
 			},
 			method: "POST",
 			body: JSON.stringify({ 
-        messages : {...messages, newMessage},
-        model: "deepseek-ai/DeepSeek-V3-0324"
+        model: 'openai/gpt-4o',
+        max_tokens: 1000,
+        messages
       }),
 		}
-	);
-	const result = await response.json();
-  console.log(JSON.stringify(result));
-	return result;
+	)
+	const result = await response.json()
+	alert(JSON.stringify(result))
+	return result
 }
 
 const InputArea = () => {
   const [inputMessage, setInputMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const chats= useChats()
   const dispatch = useChatsDispatch()
   
-  const toastError = () => toast('Sorry, we encountered an error while sending your message')
+  const messages = chats.find(c => c.isActive).messages
+  
+  const toastError = (msg) => toast(msg)
   
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey && inputMessage.trim()) {
@@ -38,60 +54,81 @@ const InputArea = () => {
     }
   }
   
+  //handleSendMessage should be broken to smaller components and renamed to handle submit
+  //also textarea should be focused after 
   
   const handleSendMessage = () => {
     setIsSubmitting(true)
-    const message = {
-      id: messages.length + 1,
+    const newMessage = {
+      id: Math.random(),
       content: inputMessage,
       role: "user",
       timestamp: new Date()
     }
     
     
-    queryAssistant().then((assistantResponse) => {
+    queryAssistant([...messages, newMessage]).then((assistantResponse) => {
+      if(assistantResponse.error) throw new Error(assistantResponse.error)
+      
       dispatch({
-        type: "added",
-        message
+        type: "added message",
+        message: newMessage
       })
+      
       dispatch({
-        type: added,
+        type: "added message",
         message: {
           ...assistantResponse.choices[0].message, 
           id: Math.random(), 
           timestamp: new Date()
         }
       })
-      console.log(JSON.stringify(assistantResponse));
+      
+      setInputMessage('')
+      
+      //If this is the first message in the chat, set the title of the chat to be the the user's message
+      if(messages.length === 0) {
+        dispatch({ 
+          type: "edited chat",
+          id: chats.find(c => c.isActive).id,
+          title: generateTitleFromMessage(inputMessage) 
+        })
+      }
     }).catch(err => {
       console.error(err)
-      toastError()
+      alert(JSON.stringify(err))
+      toastError(err)
     }).finally(() => setIsSubmitting(false))
   }
   
   return (
-    <div className="p-6 border-t border-gray-700">
-      <div className="flex items-center space-x-4">
-        <div className="flex-1 relative">
+    <div className="px-4 py-6 border-t border-gray-700">
+      <div className="flex items-center space-x-2">
+        <div className="w-full bg-dark-card border border-gray-600 rounded-lg p-3 has-[:focus]:border-purple-accent">
           <textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask myGPTbot.ai anything..."
-            className="w-full bg-dark-card border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:border-purple-accent transition-colors"
-            rows="3"
-            style={{ minHeight: '48px', maxHeight: '120px' }}
+            className="w-full text-white placeholder-gray-400 resize-none transition-colors focus:outline-none"
+            rows="2"
           />
+          <div className="flex flex-row-reverse">
+            <button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || isSubmitting}
+              className="bg-purple-accent relative hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed p-3 rounded-lg transition-colors "
+            >
+            {isSubmitting ? 
+              <LoaderCircle size={20} className="animate-spin" />
+                : 
+              <Send size={20} />}
+           </button>
+          </div>
         </div>
-        <button
-          onClick={handleSendMessage}
-          disabled={!inputMessage.trim()}
-          className="bg-purple-accent relative hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed p-3 rounded-lg transition-colors "
-        >
-          {isSubmitting && <LoaderCircle className="animate-spin absolute inset-12" />}
-          <Send size={20} />
-        </button>
       </div>
     </div>
   )
 }
+
+export default InputArea
