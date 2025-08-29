@@ -1,15 +1,6 @@
-//import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-//const geistSans = Geist({
-//  variable: "--font-geist-sans",
-//  subsets: ["latin"],
-//});
-
-/*const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});*/
+import 'katex/dist/katex.min.css';
+import 'highlight.js/styles/github-dark.css'; 
 
 export const metadata = {
   title: "Create Next App",

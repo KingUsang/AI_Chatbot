@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
 
 body {
   margin: 0;
@@ -7,14 +9,16 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100dvh;
+  max-width: 100vw;
+  ovrflow: auto;
 }
 
-.reactMarkDown h2{
-    font-size: 2rem;
-}
 
-.reactMarkDown > div {
-  @apply flex flex-col gap-2
+@layer base {
+  dialog {
+    margin: auto;
+  }
 }
 
 @theme{
